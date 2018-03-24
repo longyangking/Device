@@ -1,4 +1,5 @@
 import numpy as np 
 
-class lattice:
-    def __init__(self,latticeconstants,):
+class Lattice:
+    def __init__(self,latticeconstants):
+        pass

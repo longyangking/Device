@@ -1,11 +1,8 @@
-# ODE core
-# Interfaces with numpy ODE modules
-
 import numpy as np
 from scipy.integrate import ode
 from scipy.integrate import odeint
 
-class solver:
+class ODE:
     '''
     Simulation for real/complex-valued ODE
     dy/dt = f(y,t0)
@@ -51,11 +48,21 @@ class solver:
         self.system.set_initial_value(self.y0,self.t0)
         return self.system.successful()
 
-    def evaluate(self,t,step=False,relax=False):
-        return self.system.integrate(t,step,relax)
+    def evaluate(self,timesteps,step=False,relax=False):
+        n_values = len(timesteps)
+        values = list()
+        status = True
+        for i in range(n_values):
+            t = timesteps[i]
+            status = status and self.init()
+            value = self.system.integrate(t,step,relax)
+            values.append(value)
+        return status, values
 
+    def get_time(self):
+        return self.system.t
 
-class fastsolver:
+class FastODE:
     '''
     Fast simulation, only for real-valued ODE
     '''
@@ -81,23 +88,23 @@ class fastsolver:
 
 if __name__=='__main__':
     # Test simulation class
-    print('Inner test: Solver')
+    print('Inner test: ODE')
     y0, t0 = [1.0j, 2.0], 0
     def fun(t,y):
         return [1j*2*y[0] + y[1], -2*y[1]**2]
-    sim = solver(fun=fun,y0=y0,t0=t0)
-    print('Solver status: ',sim.init())
+    sim = ODE(fun=fun,y0=y0,t0=t0)
+    print('ODE status: ',sim.init())
 
     # Test fastsimulation class
-    print('Inner test: Fast Solver')
+    print('Inner test: Fast ODE')
     def fun(y, t):
         theta, omega = y
         dydt = [omega, -0.25*omega - 5.0*np.sin(theta)]
         return dydt
     y0 = [np.pi-0.1,0.0]
     ts = np.linspace(0,10,101)
-    sim = fastsolver(fun=fun,y0=y0)
-    print('Fast Solver status: ',sim.init())
+    sim = FastODE(fun=fun,y0=y0)
+    print('Fast ODE status: ',sim.init())
     sol = sim.evaluate(ts)
 
     import matplotlib.pyplot as plt
