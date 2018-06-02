@@ -2,6 +2,63 @@ import numpy as np
 from scipy.integrate import ode
 from scipy.integrate import odeint
 
+class SymplecticSolver:
+    '''
+    Simulation for molecular dynamic system
+    '''
+    def __init__(self, nvars, A, B, init_state, order=2):
+        '''
+        A(state, t): Knetic function
+        B(state, t): Potential function
+        '''
+        self.init_state = init_state
+        self.A = A 
+        self.B = B
+        self.t = None
+
+        self.order = 2
+
+    def init(self, init_state=None):
+        if init_state is None:
+            p,q = self.init_state
+        else:
+            p,q = init_state
+        self.p, self.q = p, q 
+        self._p, self._q = p, q
+
+        self.t = None
+
+        return True
+
+    def update(self, dt):
+        if self.order == 2:
+            _p, _q = self.p, self.q
+
+            self.p = self._p + 0.5*self.A([p,q],self.t)*dt
+            self.q = self._q + self.B([p,q],self.t)*dt
+            self.p = self.p + 0.5*self.A([p,q],self.t)*dt
+
+            self._p, self._q = _p, _q
+
+        if self.order == 3:
+            # TODO order 3
+            pass
+
+    def evaluate(self, timesteps):
+        n_values = len(timesteps)
+        values = list()
+        values.append([self.p, self.q])
+        self.t = timesteps[0]
+
+        for i in range(1, n_values):
+            dt = timesteps[i] - timesteps[i-1]
+            self.update(dt)
+            value = [self.p, self.q]
+            values.append(value)
+            
+        return values
+
+
 class ODE:
     '''
     Simulation for real/complex-valued ODE
